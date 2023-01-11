@@ -215,6 +215,7 @@ li:hover {
 
 #filters {
   display: flex;
+  flex-wrap: wrap;
   justify-content: center;
   gap: 1em;
   margin: 50px 0;
@@ -237,7 +238,6 @@ li:hover {
   border: 1px solid #1d6154;
   color: #1d6154;
   padding: 0.7em 1.4em;
-
   cursor: pointer;
 }
 
@@ -251,7 +251,11 @@ li:hover {
 
 @keyframes appear {
   from {
-    opacity: 0.4;
+    transform: translateX(-15px);
+    opacity: 0;
+  }
+  33% {
+    transform: translateY(0);
   }
   to {
     opacity: 1;
@@ -259,12 +263,13 @@ li:hover {
 }
 
 .gallery figure {
-  animation: appear 0.3s;
+  opacity: 0;
 }
 
 .gallery img {
   width: 100%;
 }
+
 #contact,
 #login {
   width: 50%;
@@ -307,6 +312,12 @@ li:hover {
   display: flex;
   justify-content: center;
   text-decoration: underline;
+}
+
+#login-error {
+  display: none;
+  color: red;
+  margin-bottom: 30px;
 }
 
 #contact textarea {

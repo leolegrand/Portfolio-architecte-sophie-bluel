@@ -48,4 +48,11 @@ function createGallery(works, filter) {
       gallery.innerHTML += `<figure><img src=${work.imageUrl} alt="${work.title}" crossorigin="anonymous"/><figcaption>${work.title}</figcaption></figure>`
     })
   }
+
+  // cascade css animation
+  const figures = document.body.querySelectorAll('.gallery figure')
+  for (let index = 0; index < figures.length; index++) {
+    figures[index].style.animation = `appear 600ms forwards`
+    figures[index].style.animationDelay = `${index}00ms`
+  }
 }
