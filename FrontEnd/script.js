@@ -56,3 +56,16 @@ function createGallery(works, filter) {
     figures[index].style.animationDelay = `${index}00ms`
   }
 }
+
+const userToken = localStorage.getItem('token')
+const log = document.body.querySelector('#log')
+
+if (userToken) {
+  log.innerHTML = `<button class="bold">logout</button>`
+  const logButton = document.body.querySelector('#log button')
+  logButton.addEventListener('click', () => {
+    window.location.reload(), localStorage.clear()
+  })
+} else {
+  log.innerHTML = `<a href="login.html">login</a>`
+}

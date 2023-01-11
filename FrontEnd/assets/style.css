@@ -154,9 +154,12 @@ h1 {
 }
 
 h1 > span {
+  margin-top: 4px;
   font-family: 'Work Sans';
   font-size: 10px;
   letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-weight: 400;
 }
 
 h2 {
@@ -169,6 +172,14 @@ h2 {
 a {
   text-decoration: none;
   color: black;
+}
+
+button {
+  border: none;
+  background-color: transparent;
+  font-family: inherit;
+  font-size: 1rem;
+  cursor: pointer;
 }
 
 nav ul {
@@ -254,10 +265,12 @@ li:hover {
     transform: translateX(-15px);
     opacity: 0;
   }
-  33% {
-    transform: translateY(0);
+
+  50% {
   }
+
   to {
+    transform: translateY(0);
     opacity: 1;
   }
 }
@@ -318,6 +331,15 @@ li:hover {
   display: none;
   color: red;
   margin-bottom: 30px;
+}
+.modify {
+  position: relative;
+}
+.modify img {
+  position: absolute;
+  left: -25px;
+  max-width: 18px;
+  height: 18px;
 }
 
 #contact textarea {
