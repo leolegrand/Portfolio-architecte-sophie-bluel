@@ -129,16 +129,22 @@ table {
 }
 /** end reset css**/
 body {
-  max-width: 1140px;
-  margin: auto;
   font-family: 'Work Sans';
   font-size: 14px;
   background-color: #fffef8;
 }
+
+header,
+main,
+footer {
+  max-width: 1140px;
+  margin: auto;
+}
+
 header {
   display: flex;
   justify-content: space-between;
-  margin: 50px 0;
+  margin: 50px auto;
 }
 section {
   margin: 50px 0;
@@ -182,6 +188,28 @@ button {
   cursor: pointer;
 }
 
+.edit-button {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  align-items: center;
+  font-size: 0.85rem;
+}
+
+.edit-button:hover {
+  color: #1d6154;
+  font-weight: 600;
+}
+
+#introduction button {
+  margin: 20px 0;
+  transform: translateX(-5px);
+}
+
+.button-to-round {
+  transition: 200ms;
+}
+
 nav ul {
   display: flex;
   align-items: center;
@@ -198,18 +226,21 @@ li:hover {
 #introduction {
   display: flex;
   align-items: center;
+  justify-content: center;
+  gap: 70px;
+  margin: 150px 0;
 }
 #introduction figure {
+  max-width: 500px;
   flex: 1;
 }
 #introduction img {
+  width: 100%;
   display: block;
-  margin: auto;
-  width: 80%;
 }
 
 #introduction article {
-  flex: 1;
+  max-width: 400px;
 }
 #introduction h2 {
   margin-bottom: 1em;
@@ -219,9 +250,11 @@ li:hover {
   margin-bottom: 0.5em;
 }
 
-#portfolio h2 {
-  text-align: center;
-  margin-bottom: 1em;
+#header-portfolio {
+  display: flex;
+  gap: 30px;
+  justify-content: center;
+  align-items: baseline;
 }
 
 #filters {
@@ -331,6 +364,7 @@ li:hover {
   display: none;
   color: red;
   margin-bottom: 30px;
+  animation: appear 500ms ease;
 }
 .modify {
   position: relative;
@@ -371,4 +405,39 @@ footer nav ul {
   display: flex;
   justify-content: flex-end;
   margin: 2em;
+}
+
+.edition-banner {
+  position: sticky;
+  top: 0;
+  z-index: 999;
+  background-color: black;
+  color: white;
+  height: 60px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
+}
+
+.edition-banner div {
+  display: flex;
+  align-items: flex-end;
+  gap: 7px;
+}
+
+.edition-banner button {
+  font-size: 0.9rem;
+  background-color: white;
+  border-radius: 60px;
+  padding: 0.6rem 1.2rem;
+  font-weight: 600;
+}
+
+#log button {
+  color: #be0c0c;
+}
+
+.bolder {
+  font-weight: bolder;
 }

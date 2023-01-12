@@ -32,9 +32,14 @@ function handleSubmit(event) {
     .then((result) => {
       if (result.userId && result.token) {
         // user successfully logged in
-        localStorage.setItem('userId', result.userId)
-        localStorage.setItem('token', result.token)
-        document.location.href = 'index.html'
+        submitButton.classList.add('button-to-round')
+        submitButton.value = `✓`
+        submitButton.style.width = '50px'
+        setTimeout(() => {
+          localStorage.setItem('userId', result.userId)
+          localStorage.setItem('token', result.token)
+          document.location.href = 'index.html'
+        }, 1000)
       } else {
         // incorrect password and/or username combination
         errorMessage.style.display = 'block'
