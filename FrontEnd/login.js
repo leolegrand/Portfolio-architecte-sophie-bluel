@@ -1,5 +1,3 @@
-const API = 'http://localhost:5678/api/'
-
 const submitButton = document.body.querySelector('input[type=submit]')
 const loginForm = document.body.querySelector('#login-form')
 const errorMessage = document.body.querySelector('#login-error')
@@ -8,7 +6,7 @@ let passwordInput = document.body.querySelector('input[type=password]')
 
 function handleSubmit(event) {
   if (!emailInput.validity.valid || !passwordInput.validity.valid) {
-    // user inputs are valid (email compliant with regex, password not missing...)
+    // user inputs are NOT VALID (email not compliant with regex, password missing...)
     return false
   }
 
@@ -20,7 +18,7 @@ function handleSubmit(event) {
   }
 
   // we try to fetch the data with the combination mail/password provided by the user
-  fetch(`${API}users/login`, {
+  fetch(`http://localhost:5678/api/users/login`, {
     method: 'POST',
     headers: {
       Accept: 'application/json, text/plain, */*',
@@ -34,7 +32,7 @@ function handleSubmit(event) {
         // user successfully logged in
         submitButton.classList.add('button-to-round')
         submitButton.value = `✓`
-        submitButton.style.width = '50px'
+        submitButton.style.width = '40px'
         setTimeout(() => {
           localStorage.setItem('userId', result.userId)
           localStorage.setItem('token', result.token)
