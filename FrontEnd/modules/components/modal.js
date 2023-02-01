@@ -1,11 +1,13 @@
-import { init } from '../../script.js'
-
 import binIcon from '../icons/bin.js'
 import crossIcon from '../icons/cross.js'
 import previousArrowIcon from '../icons/previousArrow.js'
 import imgIcon from '../icons/imgIcon.js'
 
-export const modal = (works, categories) => {
+export const modal = async () => {
+  //Fetching categories
+  const categoriesResponse = await fetch(`http://localhost:5678/api/categories`)
+  const categories = await categoriesResponse.json()
+
   // HTML element -- dialog
   let dialog = document.createElement('dialog')
   dialog.classList.add('modal')
@@ -21,13 +23,13 @@ export const modal = (works, categories) => {
 
   const dialogGalery = document.createElement('section')
   dialogGalery.setAttribute('id', 'gallery-modal')
-  const figures = works.map(
-    (
-      work
-    ) => `<figure id="${work.id}"><img src=${work.imageUrl} alt="${work.title}" crossorigin="anonymous"> <button class="bin-button">${binIcon}</button><figcaption>éditer</figcaption></figure>
-    `
+
+  let copyElementsFromGallery = document.querySelectorAll(
+    '.gallery figure img '
   )
-  dialogGalery.innerHTML = figures.join('')
+  copyElementsFromGallery.forEach((img) => {
+    dialogGalery.innerHTML += `<figure><img src=${img.src} class="${img.className}" alt="${img.alt}" crossorigin="anonymous"> <button class="bin-button">${binIcon}</button><figcaption>éditer</figcaption></figure>`
+  })
 
   const dialogGaleryDeleteGalery = document.createElement('button')
   dialogGaleryDeleteGalery.classList.add('modal__delete-btn')
@@ -53,8 +55,7 @@ export const modal = (works, categories) => {
   dialogForm.classList.add('modal__form')
 
   const selectOptions = categories.map(
-    (categorie) =>
-      `<option value='${categorie.name}'>${categorie.name}</option>`
+    (categorie) => `<option value='${categorie.id}'>${categorie.name}</option>`
   )
 
   const dialogFormDefault = `<div class="form__file" id="form-file">
@@ -62,17 +63,13 @@ export const modal = (works, categories) => {
   <label class="form__file-label" for="input-file">+ Ajouter photo
   </label>
   <p>jpg, png : 4mo max</p>
-  <input required type="file" id="input-file" accept=".jpg, .jpeg, .png"/>
+  <input type="file" id="input-file" accept="image/*"/>
   </div>
-  <label for="titre">Titre</label>
-  <input required name="titre" type="text">
-  <label for="categorie">Catégorie</label>
-  <select required name="categorie"><option value=" "</option>${selectOptions}</select>`
-
-  const dialogFormSubmit = document.createElement('input')
-  dialogFormSubmit.setAttribute('type', 'submit')
-  dialogFormSubmit.setAttribute('id', 'submit')
-  dialogFormSubmit.value = 'Valider'
+  <label for="title">Titre</label>
+  <input required name="title" type="text">
+  <label for="category">Catégorie</label>
+  <select required name="category"><option value=""></option>${selectOptions}</select>
+  <span class="separation"></span><input type="submit" id="submit" class="submit-inactive" value="Valider">`
 
   /**
    * @description Returns differents HTML elements depending of a state
@@ -91,9 +88,8 @@ export const modal = (works, categories) => {
       const deleteButtons = document.body.querySelectorAll('.bin-button')
       deleteButtons.forEach((deleteButton) =>
         deleteButton.addEventListener('click', () => {
-          let workId = deleteButton.parentNode.id
-          let parentNode = deleteButton.parentNode
-          deleteFromDatabase(workId, parentNode, works)
+          let projectId = deleteButton.parentNode.firstChild.className
+          deleteFromDatabase(projectId)
         })
       )
     } else {
@@ -103,11 +99,17 @@ export const modal = (works, categories) => {
       dialog.appendChild(dialogFormTitle)
       dialogForm.innerHTML = dialogFormDefault
       dialog.appendChild(dialogForm)
-      dialog.appendChild(dialogFormSubmit)
 
-      // on change, insert the selected image on screen
+      const form = document.querySelector('#form')
+      const submit = document.querySelector('#submit')
+
       const fileSelector = document.querySelector('#input-file')
       const formFile = document.querySelector('#form-file')
+      const inputTitle = document.body.querySelector('#form input[type="text"]')
+
+      const inputCategories = document.body.querySelector('#form select')
+
+      // handle input file and display
       fileSelector.addEventListener('change', () => {
         const file = fileSelector.files[0]
         if (file) {
@@ -119,11 +121,36 @@ export const modal = (works, categories) => {
           })
         }
       })
+
+      // if inputs are valid, change the color of the button
+      form.addEventListener('change', () => {
+        if (
+          !inputTitle.validity.valid ||
+          !inputCategories.validity.valid ||
+          fileSelector.files.length == 0
+        ) {
+          return false
+        }
+        submit.classList.remove('submit-inactive')
+      })
+
+      // handle form submit
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault()
+
+        // convert file to binary
+        const file = fileSelector.files[0]
+        var blob = new Blob([file], { type: 'text/xml' })
+
+        // convert form to formData
+        const formData = new FormData(form)
+        formData.append('image', blob)
+
+        // send form to API
+        addToDatabase(formData, closeDialog, dialog)
+      })
     }
   }
-
-  const form = document.querySelector('#form')
-  console.log(form)
 
   //open the dialog
   document.body.appendChild(dialog)
@@ -143,20 +170,20 @@ export const modal = (works, categories) => {
   })
 
   // close the dialog and remove it from DOM
-  dialogCloseButton.addEventListener('click', () => {
+  function closeDialog(dialog) {
     dialog.classList.add('modal-close')
     // a timeout is needed to see the disappearing animation
     setTimeout(() => {
       dialog.close()
       dialog.remove()
     }, 300)
-  })
+  }
+  dialogCloseButton.addEventListener('click', () => closeDialog(dialog))
 }
 
-async function deleteFromDatabase(workId, parentNode, works) {
-  // data filtered without the deleted item
-  const updatedWorks = works.filter((work) => work.id != workId)
-  fetch(`http://localhost:5678/api/works/${workId}`, {
+async function deleteFromDatabase(projectId) {
+  // we try to delete the project from the backend | projectId example : "project-42", so we have to split to get only the number
+  fetch(`http://localhost:5678/api/works/${projectId.split('-')[1]}`, {
     method: 'DELETE',
     headers: {
       Accept: 'application/json, text/plain, */*',
@@ -165,10 +192,11 @@ async function deleteFromDatabase(workId, parentNode, works) {
     },
   }).then((response) => {
     if (response.status === 204) {
-      // update the content of the page
-      init(updatedWorks)
-      // remove the item from the admin gallery
-      parentNode.remove()
+      // remove the projects from the main galery & admin galery
+      document.body
+        .querySelectorAll(`.${projectId}`)
+        .forEach((el) => el.parentNode.remove())
+      // init(updatedWorks)
     } else if (response.status === 401) {
       alert('Unauthorized')
     } else if (response.status === 500) {
@@ -177,26 +205,21 @@ async function deleteFromDatabase(workId, parentNode, works) {
   })
 }
 
-async function addToDatabase(workId, parentNode, works) {
-  // // data filtered without the selected item
-  // const updatedWorks = works.filter((work) => work.id != workId)
-  // fetch(`http://localhost:5678/api/works/${workId}`, {
-  //   method: 'DELETE',
-  //   headers: {
-  //     Accept: 'application/json, text/plain, */*',
-  //     'Content-Type': 'application/json',
-  //     Authorization: 'Bearer ' + `${localStorage.getItem('token')}`,
-  //   },
-  // }).then((response) => {
-  //   if (response.status === 204) {
-  //     // update the content of the page
-  //     init(updatedWorks)
-  //     // remove the item from the admin gallery
-  //     parentNode.remove()
-  //   } else if (response.status === 401) {
-  //     console.log('Unauthorized')
-  //   } else if (response.status === 500) {
-  //     console.log('Unexpected behaviour')
-  //   }
-  // })
+async function addToDatabase(formData, closeDialog, dialog) {
+  fetch(`http://localhost:5678/api/works`, {
+    method: 'POST',
+    headers: {
+      Authorization: 'Bearer ' + `${localStorage.getItem('token')}`,
+    },
+    body: formData,
+  })
+    .then((response) => response.json())
+    //
+    .then((result) => {
+      document.body.querySelector(
+        '.gallery'
+      ).innerHTML += `<figure><img src=${result.imageUrl} class="project-${result.id}" alt="${result.title}" crossorigin="anonymous"/><figcaption>${result.title}</figcaption></figure>`
+      closeDialog(dialog)
+      document.body.querySelector('.gallery').lastChild.style.opacity = '1'
+    })
 }
