@@ -2,6 +2,7 @@ import binIcon from '../icons/bin.js'
 import crossIcon from '../icons/cross.js'
 import previousArrowIcon from '../icons/previousArrow.js'
 import imgIcon from '../icons/imgIcon.js'
+import { popUp } from '../components/popup.js'
 
 export const modal = async () => {
   //Fetching categories
@@ -63,7 +64,7 @@ export const modal = async () => {
   <label class="form__file-label" for="input-file">+ Ajouter photo
   </label>
   <p>jpg, png : 4mo max</p>
-  <input type="file" id="input-file" accept="image/*"/>
+  <input type="file" id="input-file" name="input-file" accept="image/*"/>
   </div>
   <label for="title">Titre</label>
   <input required name="title" type="text">
@@ -89,7 +90,7 @@ export const modal = async () => {
       deleteButtons.forEach((deleteButton) =>
         deleteButton.addEventListener('click', () => {
           let projectId = deleteButton.parentNode.firstChild.className
-          deleteFromDatabase(projectId)
+          deleteFromDatabase(projectId, dialog)
         })
       )
     } else {
@@ -102,12 +103,10 @@ export const modal = async () => {
 
       const form = document.querySelector('#form')
       const submit = document.querySelector('#submit')
-
-      const fileSelector = document.querySelector('#input-file')
       const formFile = document.querySelector('#form-file')
       const inputTitle = document.body.querySelector('#form input[type="text"]')
-
       const inputCategories = document.body.querySelector('#form select')
+      const fileSelector = document.querySelector('#input-file')
 
       // handle input file and display
       fileSelector.addEventListener('change', () => {
@@ -122,12 +121,13 @@ export const modal = async () => {
         }
       })
 
+      // function addPhotoFormIsValid() {}
       // if inputs are valid, change the color of the button
       form.addEventListener('change', () => {
         if (
           !inputTitle.validity.valid ||
           !inputCategories.validity.valid ||
-          fileSelector.files.length == 0
+          fileSelector.files.length === 0
         ) {
           return false
         }
@@ -136,10 +136,20 @@ export const modal = async () => {
 
       // handle form submit
       form.addEventListener('submit', async (e) => {
+        console.log(fileSelector.files[0])
+        const file = fileSelector.files[0]
         e.preventDefault()
+        if (
+          !inputTitle.validity.valid ||
+          !inputCategories.validity.valid ||
+          fileSelector.files.length === 0
+        ) {
+          popUp('Fichier manquant', 'red', 3000, dialog)
+          form.reset()
+          return false
+        }
 
         // convert file to binary
-        const file = fileSelector.files[0]
         var blob = new Blob([file], { type: 'text/xml' })
 
         // convert form to formData
@@ -169,7 +179,6 @@ export const modal = async () => {
     dialogState('default')
   })
 
-  // close the dialog and remove it from DOM
   function closeDialog(dialog) {
     dialog.classList.add('modal-close')
     // a timeout is needed to see the disappearing animation
@@ -178,10 +187,26 @@ export const modal = async () => {
       dialog.remove()
     }, 300)
   }
+
+  // close the modal on click on the ::backdrop
+  dialog.addEventListener('click', function (event) {
+    // compare dialog element position & user click event position
+    let rect = dialog.getBoundingClientRect()
+    let isInDialog =
+      rect.top <= event.clientY &&
+      event.clientY <= rect.top + rect.height &&
+      rect.left <= event.clientX &&
+      event.clientX <= rect.left + rect.width
+    if (!isInDialog) {
+      closeDialog(dialog)
+    }
+  })
+
+  // close the modal on click on the cross icon
   dialogCloseButton.addEventListener('click', () => closeDialog(dialog))
 }
 
-async function deleteFromDatabase(projectId) {
+async function deleteFromDatabase(projectId, dialog) {
   // we try to delete the project from the backend | projectId example : "project-42", so we have to split to get only the number
   fetch(`http://localhost:5678/api/works/${projectId.split('-')[1]}`, {
     method: 'DELETE',
@@ -196,6 +221,9 @@ async function deleteFromDatabase(projectId) {
       document.body
         .querySelectorAll(`.${projectId}`)
         .forEach((el) => el.parentNode.remove())
+
+      popUp('Photo supprimé', 'red', 3000, dialog)
+
       // init(updatedWorks)
     } else if (response.status === 401) {
       alert('Unauthorized')
@@ -221,5 +249,6 @@ async function addToDatabase(formData, closeDialog, dialog) {
       ).innerHTML += `<figure><img src=${result.imageUrl} class="project-${result.id}" alt="${result.title}" crossorigin="anonymous"/><figcaption>${result.title}</figcaption></figure>`
       closeDialog(dialog)
       document.body.querySelector('.gallery').lastChild.style.opacity = '1'
+      popUp('Photo ajouté', 'green', 3000, document.body)
     })
 }

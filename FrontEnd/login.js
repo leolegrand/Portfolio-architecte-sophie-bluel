@@ -4,6 +4,8 @@ const errorMessage = document.body.querySelector('#login-error')
 let emailInput = document.body.querySelector('input[type=email]')
 let passwordInput = document.body.querySelector('input[type=password]')
 
+loginForm.addEventListener('submit', handleSubmit)
+
 function handleSubmit(event) {
   if (!emailInput.validity.valid || !passwordInput.validity.valid) {
     // user inputs are NOT VALID (email not compliant with regex, password missing...)
