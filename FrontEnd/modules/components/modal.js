@@ -64,7 +64,7 @@ export const modal = async () => {
   <label class="form__file-label" for="input-file">+ Ajouter photo
   </label>
   <p>jpg, png : 4mo max</p>
-  <input type="file" id="input-file" name="input-file" accept="image/*"/>
+  <input type="file" id="input-file" name="image" accept="image/*"/>
   </div>
   <label for="title">Titre</label>
   <input required name="title" type="text">
@@ -110,18 +110,14 @@ export const modal = async () => {
 
       // handle input file and display
       fileSelector.addEventListener('change', () => {
-        const file = fileSelector.files[0]
-        if (file) {
-          const fileReader = new FileReader()
-          fileReader.readAsDataURL(file)
-          fileReader.addEventListener('load', function () {
-            formFile.style.padding = '0px 30px 0px 30px'
-            formFile.innerHTML = '<img src="' + this.result + '" />'
-          })
+        if (fileSelector.files) {
+          const previewImg = document.createElement('img')
+          previewImg.classList.add('form__preview')
+          previewImg.src = URL.createObjectURL(fileSelector.files[0])
+          formFile.appendChild(previewImg)
         }
       })
 
-      // function addPhotoFormIsValid() {}
       // if inputs are valid, change the color of the button
       form.addEventListener('change', () => {
         if (
@@ -136,8 +132,6 @@ export const modal = async () => {
 
       // handle form submit
       form.addEventListener('submit', async (e) => {
-        console.log(fileSelector.files[0])
-        const file = fileSelector.files[0]
         e.preventDefault()
         if (
           !inputTitle.validity.valid ||
@@ -145,18 +139,21 @@ export const modal = async () => {
           fileSelector.files.length === 0
         ) {
           popUp('Fichier manquant', 'red', 3000, dialog)
-          form.reset()
           return false
         }
 
+        // convert form to formData
+        const formData = new FormData(form)
+
+        const file = fileSelector.files[0]
         // convert file to binary
         var blob = new Blob([file], { type: 'text/xml' })
 
-        // convert form to formData
-        const formData = new FormData(form)
+        formData.delete('image')
         formData.append('image', blob)
 
         // send form to API
+
         addToDatabase(formData, closeDialog, dialog)
       })
     }
@@ -175,6 +172,10 @@ export const modal = async () => {
 
   // go back to the default state of the dialog modal
   dialogPrevious.addEventListener('click', (e) => {
+    const inputFile = document.querySelector('#input-file')
+    if (inputFile) {
+      inputFile.value = ''
+    }
     e.preventDefault()
     dialogState('default')
   })
@@ -183,6 +184,10 @@ export const modal = async () => {
     dialog.classList.add('modal-close')
     // a timeout is needed to see the disappearing animation
     setTimeout(() => {
+      const inputFile = document.querySelector('#input-file')
+      if (inputFile) {
+        inputFile.value = ''
+      }
       dialog.close()
       dialog.remove()
     }, 300)
@@ -222,9 +227,7 @@ async function deleteFromDatabase(projectId, dialog) {
         .querySelectorAll(`.${projectId}`)
         .forEach((el) => el.parentNode.remove())
 
-      popUp('Photo supprimé', 'red', 3000, dialog)
-
-      // init(updatedWorks)
+      popUp('Photo supprimée', 'red', 3000, dialog)
     } else if (response.status === 401) {
       alert('Unauthorized')
     } else if (response.status === 500) {
@@ -242,13 +245,18 @@ async function addToDatabase(formData, closeDialog, dialog) {
     body: formData,
   })
     .then((response) => response.json())
-    //
     .then((result) => {
-      document.body.querySelector(
-        '.gallery'
-      ).innerHTML += `<figure><img src=${result.imageUrl} class="project-${result.id}" alt="${result.title}" crossorigin="anonymous"/><figcaption>${result.title}</figcaption></figure>`
-      closeDialog(dialog)
-      document.body.querySelector('.gallery').lastChild.style.opacity = '1'
-      popUp('Photo ajouté', 'green', 3000, document.body)
+      // if the result contain an object with the key "id"
+      if ('id' in result) {
+        // we display the new image in the gallery, we close the dialog then a pop up appear to let the user know that the task is sucessfull
+        document.body.querySelector(
+          '.gallery'
+        ).innerHTML += `<figure><img src=${result.imageUrl} class="project-${result.id}" alt="${result.title}" crossorigin="anonymous"/><figcaption>${result.title}</figcaption></figure>`
+        closeDialog(dialog)
+        document.body.querySelector('.gallery').lastChild.style.opacity = '1'
+        popUp('Photo ajouté', 'green', 3000, document.body)
+      } else {
+        alert('an error has occurred')
+      }
     })
 }

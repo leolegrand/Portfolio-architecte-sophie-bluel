@@ -6,13 +6,14 @@ const gallery = document.querySelector('.gallery')
 const filters = document.querySelector('#filters')
 
 export const init = async () => {
-  //Fetching works, updatedWorks is a data set modified by the user, if he is logged in in admin mode
+  //Fetching works
   const worksResponse = await fetch(`http://localhost:5678/api/works`)
   const works = await worksResponse.json()
 
   displayFilters(works)
   displayGallery(works, 'default')
 
+  const userToken = localStorage.getItem('token')
   if (userToken) {
     adminMode()
   }
@@ -27,7 +28,9 @@ function displayFilters(works) {
   const worksCategory = [...new Set(worksCategoryWithDupplicate)]
 
   // display filters buttons
-  filters.innerHTML += `<input  class="filter" type="radio" name="filter" value="default" id="default" checked /><label for="default">Tous</label>`
+  filters.innerHTML += `
+  <input  class="filter" type="radio" name="filter" value="default" id="default" checked />
+  <label for="default">Tous</label>`
   worksCategory.forEach((categorie) => {
     filters.innerHTML += `<input class="filter" type="radio"
     value="${categorie.split(' ')[0]}"
@@ -51,12 +54,17 @@ function displayGallery(works, filter) {
       (work) => work.category.name.split(' ')[0] == filter.split(' ')[0]
     )
     worksFiltered.forEach((work) => {
-      gallery.innerHTML += `<figure><img src=${work.imageUrl} class="project-${work.id}" alt="${work.title}" crossorigin="anonymous"/><figcaption>${work.title}</figcaption></figure>`
+      gallery.innerHTML += `
+      <figure><img src=${work.imageUrl} class="project-${work.id}" alt="${work.title}" crossorigin="anonymous"/>
+      <figcaption>${work.title}</figcaption>
+      </figure>`
     })
   } else {
     // default behavior, items from all categories are displayed
     works.forEach((work) => {
-      gallery.innerHTML += `<figure><img src=${work.imageUrl} class="project-${work.id}" alt="${work.title}" crossorigin="anonymous"/><figcaption>${work.title}</figcaption></figure>`
+      gallery.innerHTML += `<figure><img src=${work.imageUrl} class="project-${work.id}" alt="${work.title}" crossorigin="anonymous"/>
+      <figcaption>${work.title}</figcaption>
+      </figure>`
     })
   }
 
